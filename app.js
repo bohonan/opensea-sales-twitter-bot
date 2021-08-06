@@ -13,7 +13,7 @@ function formatAndSendTweet(twitterData) {
             : ` ${twitterData.tokenSymbol}`
     );
 
-    const tweetText = `${twitterData.tokenName} was purchased for ${formattedTokenPrice}${formattedPriceSymbol} ($${formattedUsdPrice}) #treeverse #ethereum ${twitterData.openseaLink}`;
+    const tweetText = `${twitterData.tokenName} was purchased for ${formattedTokenPrice}${formattedPriceSymbol} ($${formattedUsdPrice}) by ${twitterData.buyersAddressShort} from ${twitterData.sellersAddressShort}. #${process.env.OPENSEA_COLLECTION_SLUG} #ethereum ${twitterData.openseaLink}`;
 
     console.log(tweetText);
 
