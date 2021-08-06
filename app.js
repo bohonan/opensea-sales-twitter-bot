@@ -51,7 +51,9 @@ function buildDataForTwitter(sale) {
         usdValue: sale.node.price.asset.usdSpotPrice,
         tokenSymbol: sale.node.price.asset.symbol,
         sellersAddress: sale.node.seller.address,
-        buyersAddress: sale.node.winnerAccount.address
+        buyersAddress: sale.node.winnerAccount.address,
+        sellersAddressShort: sale.node.seller.address.substring(0,8),
+        buyersAddressShort: sale.node.winnerAccount.address.substring(0,8)
     }
 }
 
