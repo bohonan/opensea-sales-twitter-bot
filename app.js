@@ -17,7 +17,7 @@ function formatAndSendTweet(twitterData) {
 
     console.log('tweet text', tweetText);
 
-    return tweet.handleDupesAndTweet(twitterData.tokenName, tweetText, twitterData.image);
+    // return tweet.handleDupesAndTweet(twitterData.tokenName, tweetText, twitterData.image);
 }
 
 async function getLastestSaleData(collection) {
@@ -61,7 +61,7 @@ function buildDataForTwitter(sale) {
 }
 
 function isNewSaleInLastMinute(lastMinute, sale) {
-    let salesTimestamp = moment(sale.node.eventTimestamp, 'YYYY-MM-DDThh:mm:ss')
+    let salesTimestamp = moment.utc(sale.node.eventTimestamp, 'YYYY-MM-DDThh:mm:ss')
     let diff = lastMinute.diff(salesTimestamp, 'seconds');
     return (diff < 0);
 }
@@ -88,7 +88,7 @@ function processAllSales(lastMinute, latestSalesData) {
 // Poll OpenSea every minute & retrieve all sales for a given collection in the last minute
 // Then pass those events over to the formatter before tweeting
 setInterval(async () => {
-    const lastMinute = moment().startOf('minute').subtract(59, "seconds")
+    const lastMinute = moment().startOf('minute').subtract(59, "seconds").utc()
     try {
         processAllSales(lastMinute, await getLastestSaleData(process.env.OPENSEA_COLLECTION_SLUG));
     } catch(error) {
