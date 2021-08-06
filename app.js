@@ -15,7 +15,7 @@ function formatAndSendTweet(twitterData) {
 
     const tweetText = `${twitterData.tokenName} was purchased for ${formattedTokenPrice}${formattedPriceSymbol} ($${formattedUsdPrice}) by ${twitterData.buyersAddressShort} from ${twitterData.sellersAddressShort}. #${process.env.OPENSEA_COLLECTION_SLUG} #ethereum ${twitterData.openseaLink}`;
 
-    console.log(tweetText);
+    console.log('tweet text', tweetText);
 
     return tweet.handleDupesAndTweet(twitterData.tokenName, tweetText, twitterData.image);
 }
@@ -65,12 +65,14 @@ function isNewSaleInLastMinute(lastMinute, sale) {
 }
 
 function processAllSales(lastMinute, latestSalesData) {
-    sentTwitterData = []
+    let sentTwitterData = [];
+    let salesInLastMinute = [];
     const sales = latestSalesData.data.assetEvents.edges;
     for(let index in sales) {
         let sale = sales[index];
         if(isNewSaleInLastMinute(lastMinute, sale)) {
             if (sale.node.assetQuantity) {
+                salesInLastMinute.push(sale);
                 twitterData = buildDataForTwitter(sale);
                 formatAndSendTweet(twitterData);
                 sentTwitterData.push(twitterData);
@@ -79,6 +81,7 @@ function processAllSales(lastMinute, latestSalesData) {
             break
         }
     }
+    console.log(`${salesInLastMinute.length} sales in the last minute...`)
     return sentTwitterData;
 }
 
