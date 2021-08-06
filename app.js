@@ -86,7 +86,7 @@ function processAllSales(lastMinute, latestSalesData) {
 setInterval(async () => {
     const lastMinute = moment().startOf('minute').subtract(59, "seconds")
     try {
-        processAllSales(lastMinute, await getLastestSaleData("treeverse"));
+        processAllSales(lastMinute, await getLastestSaleData(process.env.OPENSEA_COLLECTION_SLUG));
     } catch(error) {
         console.log(error);
     }
