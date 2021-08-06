@@ -17,7 +17,7 @@ function formatAndSendTweet(twitterData) {
 
     console.log('tweet text', tweetText);
 
-    // return tweet.handleDupesAndTweet(twitterData.tokenName, tweetText, twitterData.image);
+    return tweet.handleDupesAndTweet(twitterData.tokenName, tweetText, twitterData.image);
 }
 
 async function getLastestSaleData(collection) {
