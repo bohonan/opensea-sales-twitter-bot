@@ -4,6 +4,8 @@ const moment = require('moment');
 const { ethers } = require('ethers');
 const tweet = require('./tweet');
 
+let lastSaleTimestamp = moment().startOf('minute').subtract(60, "seconds").utc();
+
 function formatAndSendTweet(twitterData) {
     const formattedTokenPrice = ethers.utils.formatEther(twitterData.totalPrice.toString());
     const formattedUsdPrice = (formattedTokenPrice * twitterData.usdValue).toFixed(2);
@@ -60,24 +62,36 @@ function buildDataForTwitter(sale) {
     }
 }
 
-function isNewSaleInLastMinute(lastMinute, sale) {
+function isNewSaleSinceLastSale(sale) {
     let salesTimestamp = moment.utc(sale.node.eventTimestamp, 'YYYY-MM-DDThh:mm:ss')
-    let diff = lastMinute.diff(salesTimestamp, 'seconds');
+    let diff = lastSaleTimestamp.diff(salesTimestamp, 'seconds');
     return (diff < 0);
 }
 
-function processAllSales(lastMinute, latestSalesData) {
+function setTempLastSaleTimestamp(tempLastSaleTimestamp, sale) {
+    if(tempLastSaleTimestamp == null) {
+        tempLastSaleTimestamp = moment.utc(sale.node.eventTimestamp, 'YYYY-MM-DDThh:mm:ss')
+    }
+    return tempLastSaleTimestamp;
+}
+
+function processAllSales(latestSalesData) {
     let sendTwitterData = [];
+    let tempLastSaleTimestamp = null;
     const sales = latestSalesData.data.assetEvents.edges;
     for(let index in sales) {
         let sale = sales[index];
-        if(isNewSaleInLastMinute(lastMinute, sale)) {
+        if(isNewSaleSinceLastSale(sale)) {
             if (sale.node.assetQuantity) {
+                tempLastSaleTimestamp = setTempLastSaleTimestamp(tempLastSaleTimestamp, sale);
                 twitterData = buildDataForTwitter(sale);
                 formatAndSendTweet(twitterData);
                 sendTwitterData.push(twitterData);
             }
         } else {
+            if(tempLastSaleTimestamp != null) {
+                lastSaleTimestamp = tempLastSaleTimestamp;
+            }
             break
         }
     }
@@ -85,13 +99,17 @@ function processAllSales(lastMinute, latestSalesData) {
     return sendTwitterData;
 }
 
-// Poll OpenSea every minute & retrieve all sales for a given collection in the last minute
-// Then pass those events over to the formatter before tweeting
-setInterval(async () => {
-    const lastMinute = moment().startOf('minute').subtract(59, "seconds").utc()
+async function pollOpenSeaForSales() {
     try {
-        processAllSales(lastMinute, await getLastestSaleData(process.env.OPENSEA_COLLECTION_SLUG));
+        processAllSales(await getLastestSaleData(process.env.OPENSEA_COLLECTION_SLUG));
     } catch(error) {
         console.log(error);
     }
+}
+
+// Poll OpenSea every minute & retrieve all sales for a given collection in the last minute
+// Then pass those events over to the formatter before tweeting
+pollOpenSeaForSales();
+setInterval(async () => {
+    pollOpenSeaForSales();
 }, 60000);
